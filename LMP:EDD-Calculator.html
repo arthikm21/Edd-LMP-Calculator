@@ -1,0 +1,965 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>IWK Health Diagnostic Imaging — EDD/LMP Calculator</title>
+<meta name="description" content="Gestational age, due date and scan week dates for the IWK Diagnostic Imaging booking desk.">
+<style>
+/* ============================================================
+   Liquid Glass — IWK Diagnostic Imaging EDD/LMP Calculator
+   Two identities: LMP = lavender, EDD = jade. Everything inside
+   a panel (calendar dots, trimester rails, progress, pills)
+   inherits that panel's accent, so the two layouts never blur
+   together at a glance.
+   ============================================================ */
+:root{
+  color-scheme:light dark;
+
+  --ink:#17141d;
+  --ink-2:#5f5870;
+  --ink-3:#8c8599;
+
+  /* glass system */
+  --glass:rgba(255,255,255,.55);
+  --glass-hi:rgba(255,255,255,.78);
+  --glass-lo:rgba(255,255,255,.34);
+  --sticky:rgba(247,245,252,.96);
+  --stroke:rgba(255,255,255,.72);
+  --edge:rgba(32,22,58,.08);
+  --hairline:rgba(32,22,58,.06);
+  --field:rgba(255,255,255,.5);
+
+  --blur:saturate(180%) blur(26px);
+  --blur-sm:saturate(170%) blur(14px);
+
+  --shadow:0 1px 1px rgba(28,18,52,.04),
+           0 14px 34px -14px rgba(28,18,52,.20),
+           0 48px 90px -50px rgba(28,18,52,.28);
+  --shadow-sm:0 1px 2px rgba(28,18,52,.06), 0 6px 18px -10px rgba(28,18,52,.22);
+
+  --radius:26px;
+  --radius-2:18px;
+
+  --alert:#b3261e;
+  --alert-bg:rgba(179,38,30,.08);
+
+  /* neutral accent for chrome outside the panels */
+  --accent:#6d4bf0;
+  --accent-deep:#3b2099;
+}
+
+/* ---------- per-panel identity ---------- */
+.panel[data-mode="lmp"]{
+  --accent:#6d4bf0;
+  --accent-deep:#36189a;
+  --on-accent:#ffffff;
+  --tint:rgba(109,75,240,.10);
+  --tint-2:rgba(109,75,240,.20);
+  --halo:rgba(124,92,255,.34);
+  --t1:#9b82ff; --t2:#6d4bf0; --t3:#3f27ac;
+}
+.panel[data-mode="edd"]{
+  --accent:#0d8b96;
+  --accent-deep:#064c55;
+  --on-accent:#ffffff;
+  --tint:rgba(13,139,150,.10);
+  --tint-2:rgba(13,139,150,.20);
+  --halo:rgba(20,176,188,.32);
+  --t1:#5cc6ce; --t2:#0d8b96; --t3:#0a5a64;
+}
+
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ink:#f4f1fa;
+    --ink-2:#a9a2b8;
+    --ink-3:#8a8399;
+
+    --glass:rgba(38,33,50,.52);
+    --glass-hi:rgba(58,51,74,.62);
+    --glass-lo:rgba(28,24,38,.44);
+    --sticky:rgba(24,21,32,.95);
+    --stroke:rgba(255,255,255,.12);
+    --edge:rgba(255,255,255,.10);
+    --hairline:rgba(255,255,255,.07);
+    --field:rgba(255,255,255,.07);
+
+    --shadow:0 1px 1px rgba(0,0,0,.35),
+             0 16px 40px -16px rgba(0,0,0,.65),
+             0 60px 110px -60px rgba(0,0,0,.8);
+    --shadow-sm:0 1px 2px rgba(0,0,0,.4), 0 8px 20px -12px rgba(0,0,0,.6);
+
+    --alert:#ff7b70;
+    --alert-bg:rgba(255,123,112,.12);
+
+    --accent:#b7a2ff;
+    --accent-deep:#e4dbff;
+  }
+  :root:not([data-theme="light"]) .panel[data-mode="lmp"]{
+    --accent:#b7a2ff; --accent-deep:#e7dfff; --on-accent:#1a1030;
+    --tint:rgba(183,162,255,.14); --tint-2:rgba(183,162,255,.26);
+    --halo:rgba(150,118,255,.38);
+    --t1:#d2c4ff; --t2:#b7a2ff; --t3:#8f77f0;
+  }
+  :root:not([data-theme="light"]) .panel[data-mode="edd"]{
+    --accent:#5fd4de; --accent-deep:#d3f6f9; --on-accent:#04222a;
+    --tint:rgba(95,212,222,.13); --tint-2:rgba(95,212,222,.24);
+    --halo:rgba(40,190,205,.34);
+    --t1:#a9ecf1; --t2:#5fd4de; --t3:#2ba7b4;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#f4f1fa; --ink-2:#a9a2b8; --ink-3:#8a8399;
+  --glass:rgba(38,33,50,.52); --glass-hi:rgba(58,51,74,.62); --glass-lo:rgba(28,24,38,.44);
+  --sticky:rgba(24,21,32,.95); --stroke:rgba(255,255,255,.12);
+  --edge:rgba(255,255,255,.10); --hairline:rgba(255,255,255,.07); --field:rgba(255,255,255,.07);
+  --shadow:0 1px 1px rgba(0,0,0,.35), 0 16px 40px -16px rgba(0,0,0,.65), 0 60px 110px -60px rgba(0,0,0,.8);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.4), 0 8px 20px -12px rgba(0,0,0,.6);
+  --alert:#ff7b70; --alert-bg:rgba(255,123,112,.12);
+  --accent:#b7a2ff; --accent-deep:#e4dbff;
+}
+:root[data-theme="dark"] .panel[data-mode="lmp"]{
+  --accent:#b7a2ff; --accent-deep:#e7dfff; --on-accent:#1a1030;
+  --tint:rgba(183,162,255,.14); --tint-2:rgba(183,162,255,.26); --halo:rgba(150,118,255,.38);
+  --t1:#d2c4ff; --t2:#b7a2ff; --t3:#8f77f0;
+}
+:root[data-theme="dark"] .panel[data-mode="edd"]{
+  --accent:#5fd4de; --accent-deep:#d3f6f9; --on-accent:#04222a;
+  --tint:rgba(95,212,222,.13); --tint-2:rgba(95,212,222,.24); --halo:rgba(40,190,205,.34);
+  --t1:#a9ecf1; --t2:#5fd4de; --t3:#2ba7b4;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  min-height:100vh;
+  background:#f3f1f8;
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI","Helvetica Neue",Arial,sans-serif;
+  font-size:16px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) body{background:#0c0a12} }
+:root[data-theme="dark"] body{background:#0c0a12}
+
+/* ambient light the glass has something to refract — lavender on the
+   LMP side, jade on the EDD side, so each panel sits in its own light. */
+body::before{
+  content:'';position:fixed;inset:-20% -10%;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(48% 52% at 18% 16%, rgba(124,92,255,.30), transparent 70%),
+    radial-gradient(46% 50% at 82% 20%, rgba(20,176,188,.26), transparent 70%),
+    radial-gradient(60% 45% at 50% 100%, rgba(160,140,255,.16), transparent 72%);
+  filter:blur(6px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) body::before{
+    background:
+      radial-gradient(48% 52% at 18% 14%, rgba(122,84,255,.34), transparent 70%),
+      radial-gradient(46% 50% at 84% 18%, rgba(10,150,165,.28), transparent 70%),
+      radial-gradient(60% 45% at 50% 100%, rgba(70,40,160,.24), transparent 72%);
+  }
+}
+:root[data-theme="dark"] body::before{
+  background:
+    radial-gradient(48% 52% at 18% 14%, rgba(122,84,255,.34), transparent 70%),
+    radial-gradient(46% 50% at 84% 18%, rgba(10,150,165,.28), transparent 70%),
+    radial-gradient(60% 45% at 50% 100%, rgba(70,40,160,.24), transparent 72%);
+}
+
+button{font:inherit;color:inherit}
+
+/* ============ shell ============ */
+.app{
+  min-height:100vh;min-height:100dvh;
+  padding:18px 20px 12px;
+  padding-top:max(18px, env(safe-area-inset-top));
+  padding-bottom:max(12px, env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;gap:14px;
+}
+@media (min-width:1200px){
+  html,body{height:100%;overflow:hidden}
+  .app{height:100vh;height:100dvh}
+}
+
+.bar{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:0 8px;flex:none}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand h1{margin:0;font-size:21px;font-weight:600;letter-spacing:-.03em}
+.brand .org{
+  font-size:10.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-3);
+}
+.today{
+  margin:0;font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;
+  padding:6px 13px;border-radius:999px;
+  background:var(--glass-lo);border:1px solid var(--stroke);
+  -webkit-backdrop-filter:var(--blur-sm);backdrop-filter:var(--blur-sm);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45);
+}
+
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;flex:1;min-height:0}
+
+/* ============ glass panel ============ */
+.panel{
+  position:relative;isolation:isolate;
+  border-radius:var(--radius);
+  background:
+    linear-gradient(180deg, var(--glass-hi), var(--glass-lo));
+  border:1px solid var(--stroke);
+  -webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+  box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.55);
+  padding:18px 20px 20px;
+  min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden;
+}
+/* accent bloom: the only thing that says which calculator this is,
+   before you read a word of it. */
+.panel::before{
+  content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;border-radius:inherit;
+  background:radial-gradient(120% 70% at 0% 0%, var(--halo), transparent 62%);
+  opacity:.5;
+}
+/* specular top edge */
+.panel::after{
+  content:'';position:absolute;left:14%;right:14%;top:0;height:1px;pointer-events:none;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.9), transparent);
+}
+
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;flex:none;margin-bottom:14px}
+.panel-head h2{margin:0;font-size:17px;font-weight:600;letter-spacing:-.025em;display:flex;align-items:center;gap:10px}
+.badge{
+  font-size:10px;font-weight:700;letter-spacing:.08em;line-height:1;
+  padding:5px 9px;border-radius:999px;
+  color:var(--accent-deep);background:var(--tint-2);
+  border:1px solid var(--tint-2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5);
+}
+.badge.solid{background:var(--accent);color:var(--on-accent);border-color:transparent;box-shadow:0 4px 12px -4px var(--halo)}
+.panel-head .hint{font-size:12px;color:var(--ink-3)}
+
+.body{display:grid;grid-template-columns:clamp(268px,17vw,360px) minmax(0,1fr);gap:20px;flex:1;min-height:0}
+@media (max-width:1500px){ .body{grid-template-columns:266px minmax(0,1fr);gap:15px} }
+.col-res > *{max-width:780px}
+
+.col-cal{display:flex;flex-direction:column;min-height:0}
+.col-res{display:flex;flex-direction:column;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:3px}
+.col-res::-webkit-scrollbar{width:6px}
+.col-res::-webkit-scrollbar-thumb{background:var(--tint-2);border-radius:6px}
+
+/* ---------- calendar: an inset glass slab ---------- */
+.cal{
+  border-radius:var(--radius-2);overflow:hidden;
+  background:var(--glass-lo);
+  border:1px solid var(--edge);
+  -webkit-backdrop-filter:var(--blur-sm);backdrop-filter:var(--blur-sm);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5);
+  display:flex;flex-direction:column;flex:1;min-height:0;
+}
+.cal-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:7px 8px;border-bottom:1px solid var(--hairline);flex:none;
+  background:linear-gradient(180deg, rgba(255,255,255,.35), transparent);
+}
+.cal-btn{
+  appearance:none;border:1px solid transparent;background:transparent;color:var(--accent);
+  font-size:12px;font-weight:600;letter-spacing:-.01em;
+  padding:5px 12px;border-radius:999px;cursor:pointer;
+  transition:background-color .16s ease,border-color .16s ease,opacity .16s ease,transform .16s ease;
+}
+.cal-btn:hover:not(:disabled){background:var(--tint);border-color:var(--tint-2)}
+.cal-btn:active:not(:disabled){transform:scale(.96)}
+.cal-btn:disabled{color:var(--ink-3);opacity:.45;cursor:default}
+.cal-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.cal-scroll{
+  flex:1;min-height:120px;overflow-y:auto;overscroll-behavior:contain;position:relative;
+  padding:0 0 12px;-webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;scrollbar-color:var(--tint-2) transparent;
+}
+.cal-scroll.smooth{scroll-behavior:smooth}
+.cal-scroll::-webkit-scrollbar{width:7px}
+.cal-scroll::-webkit-scrollbar-thumb{background:var(--tint-2);border-radius:7px;border:2px solid transparent;background-clip:padding-box}
+
+.cal-top{
+  display:grid;grid-template-columns:repeat(7,1fr);
+  width:100%;max-width:322px;margin:0 auto;
+  padding:9px 0 7px;border-bottom:1px solid var(--hairline);
+  position:sticky;top:0;z-index:5;
+  background:var(--sticky);
+  -webkit-backdrop-filter:var(--blur-sm);backdrop-filter:var(--blur-sm);
+}
+.cal-top span{text-align:center;font-size:10px;font-weight:700;color:var(--ink-2);letter-spacing:.08em}
+.cal-month{width:100%;max-width:322px;margin:0 auto;padding-bottom:3px}
+.cal-label{
+  position:sticky;top:30px;z-index:4;padding:9px 4px 6px;
+  font-size:12px;font-weight:600;letter-spacing:.01em;color:var(--accent-deep);
+  background:var(--sticky);
+  -webkit-backdrop-filter:var(--blur-sm);backdrop-filter:var(--blur-sm);
+}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px 0}
+.cal-blank{display:block}
+.cal-day{
+  position:relative;appearance:none;border:0;background:transparent;
+  width:100%;max-width:38px;aspect-ratio:1/1;max-height:38px;margin:0 auto;border-radius:50%;
+  font-size:12.5px;font-weight:400;font-variant-numeric:tabular-nums;cursor:pointer;color:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  transition:background-color .16s ease,color .16s ease,box-shadow .16s ease,transform .16s ease;
+}
+.cal-day:hover{background:var(--tint)}
+.cal-day:active{transform:scale(.92)}
+.cal-day:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.cal-day.is-today{color:var(--accent);font-weight:700}
+.cal-day.is-today::before{content:'';position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--tint-2)}
+.cal-day.is-derived{box-shadow:inset 0 0 0 2px var(--accent);font-weight:600}
+.cal-day.is-sel{
+  background:var(--accent);color:var(--on-accent);font-weight:700;
+  box-shadow:0 6px 16px -6px var(--halo), inset 0 1px 0 rgba(255,255,255,.35);
+}
+.cal-day.is-sel::before{display:none}
+.cal-day.is-sel:hover{background:var(--accent)}
+.cal-day.has-dot::after{
+  content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);
+  width:4px;height:4px;border-radius:50%;background:var(--dot);
+}
+.cal-day.t1{--dot:var(--t1)} .cal-day.t2{--dot:var(--t2)} .cal-day.t3{--dot:var(--t3)}
+.cal-day.is-sel.has-dot::after{background:var(--on-accent)}
+
+/* under-calendar strip */
+.under{flex:none;margin-top:12px;min-height:58px;display:flex;flex-direction:column;gap:7px}
+.cycle{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.cycle label{font-size:12.5px;color:var(--ink-2)}
+.cycle input{
+  width:66px;padding:6px 11px;font:inherit;font-size:13px;font-variant-numeric:tabular-nums;
+  background:var(--field);color:var(--ink);
+  border:1px solid var(--edge);border-radius:999px;
+  -webkit-backdrop-filter:var(--blur-sm);backdrop-filter:var(--blur-sm);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4);
+  transition:border-color .16s ease,box-shadow .16s ease;
+}
+.cycle input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--tint)}
+.cycle .unit{font-size:12.5px;color:var(--ink-3)}
+.no-cycle{font-size:12.5px;color:var(--ink-3);margin:0;padding:5px 0}
+.shift{font-size:12px;color:var(--accent-deep);margin:0}
+.cal-legend{margin:0;font-size:11.5px;color:var(--ink-3);display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-height:17px}
+.cal-legend i{width:5px;height:5px;border-radius:50%;background:var(--t2);display:inline-block;flex:none}
+.cal-legend u{width:9px;height:9px;border-radius:50%;border:2px solid var(--accent);display:inline-block;text-decoration:none;flex:none}
+
+/* ---------- results ---------- */
+.picked{
+  margin:0 0 12px;font-size:12.5px;font-weight:600;color:var(--accent-deep);
+  font-variant-numeric:tabular-nums;flex:none;
+  padding:7px 13px;border-radius:999px;align-self:flex-start;
+  background:var(--tint);border:1px solid var(--tint-2);
+}
+.picked.empty{color:var(--ink-3);font-weight:400;background:var(--glass-lo);border-color:var(--edge)}
+
+.empty-state{
+  flex:1;display:flex;flex-direction:column;justify-content:center;gap:9px;
+  border:1px dashed var(--tint-2);border-radius:var(--radius-2);padding:24px;text-align:center;
+  background:var(--glass-lo);
+}
+.empty-state strong{font-size:14px;font-weight:600;color:var(--ink-2)}
+.empty-state span{font-size:12.5px;color:var(--ink-3);font-weight:400}
+.results[hidden],.empty-state[hidden]{display:none}
+.results{flex:1;min-height:0;display:flex;flex-direction:column}
+
+.ga{display:flex;align-items:baseline;gap:5px;flex-wrap:wrap;flex:none}
+.ga .n{
+  font-size:clamp(34px,3.2vw,52px);font-weight:600;letter-spacing:-.05em;line-height:1;
+  font-variant-numeric:tabular-nums;color:var(--accent-deep);
+}
+.ga .u{font-size:clamp(14px,1.2vw,18px);font-weight:400;color:var(--ink-2);letter-spacing:-.02em;margin-right:10px}
+.ga .u:last-child{margin-right:0}
+.ga .none{font-size:16px;font-weight:400;color:var(--ink-2);letter-spacing:-.02em}
+.ga-label{margin:9px 0 0;font-size:12px;color:var(--ink-3);flex:none}
+.ga-label b{font-weight:600}
+.ga-label b.t1{color:var(--t1)} .ga-label b.t2{color:var(--t2)} .ga-label b.t3{color:var(--t3)}
+
+.prog{position:relative;margin-top:16px;flex:none}
+.prog-track{
+  position:relative;height:10px;border-radius:999px;overflow:hidden;
+  background:var(--field);border:1px solid var(--edge);
+  box-shadow:inset 0 1px 2px rgba(28,18,52,.07);
+}
+.prog-fill{
+  height:100%;border-radius:999px;
+  background:var(--accent);
+  background:linear-gradient(180deg, color-mix(in srgb, var(--accent) 80%, white), var(--accent));
+  box-shadow:0 0 14px -2px var(--halo);
+}
+.prog-tick{position:absolute;top:0;bottom:0;width:1.5px;background:rgba(255,255,255,.85);opacity:.9;z-index:2}
+.prog-now{
+  position:absolute;top:5px;width:16px;height:16px;border-radius:50%;
+  background:rgba(255,255,255,.9);border:3.5px solid var(--accent-deep);
+  transform:translate(-50%,-50%);z-index:3;
+  box-shadow:0 2px 8px -1px var(--halo), inset 0 1px 0 rgba(255,255,255,.6);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+}
+.prog-scale{display:flex;justify-content:space-between;margin-top:9px;font-size:10.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+
+.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:18px 0 0;flex:none}
+.pair div{
+  background:var(--glass-lo);border:1px solid var(--edge);border-radius:14px;padding:11px 13px;
+  -webkit-backdrop-filter:var(--blur-sm);backdrop-filter:var(--blur-sm);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4);
+}
+.pair .primary{background:var(--tint);border-color:var(--tint-2)}
+.pair .primary dd{color:var(--accent-deep)}
+.pair dt{margin:0;font-size:11px;color:var(--ink-3);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.pair dt .abbr{
+  font-size:9.5px;font-weight:700;letter-spacing:.06em;color:var(--accent-deep);
+  background:var(--tint-2);padding:2px 6px;border-radius:999px;
+}
+.pair .primary dt .abbr{background:rgba(255,255,255,.55)}
+.pair dd{margin:4px 0 0;font-size:15px;font-weight:600;letter-spacing:-.015em;font-variant-numeric:tabular-nums}
+.pair .wd{font-size:11px;font-weight:400;color:var(--ink-3);display:block;margin-top:1px}
+
+.sec-title{margin:20px 0 5px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);flex:none}
+.rows{display:flex;flex-direction:column;flex:1;min-height:0}
+.row{
+  position:relative;display:grid;grid-template-columns:1fr auto;gap:2px 12px;
+  padding:9px 11px 9px 15px;border-bottom:1px solid var(--hairline);
+  align-items:center;align-content:center;border-radius:12px;
+  flex:1 1 auto;max-height:76px;
+  transition:background-color .16s ease;
+}
+.row:last-child{border-bottom:0}
+.row::before{content:'';position:absolute;left:2px;top:9px;bottom:9px;width:3px;border-radius:3px;background:var(--rowc)}
+.row.t1{--rowc:var(--t1)} .row.t2{--rowc:var(--t2)} .row.t3{--rowc:var(--t3)}
+.row .wk{grid-column:1;grid-row:1;font-size:14px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--rowc)}
+.row .note{grid-column:1;grid-row:2;font-size:11px;color:var(--ink-3)}
+.row .dt{grid-column:2;grid-row:1;text-align:right;font-size:14px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-.015em}
+.row .wd{grid-column:2;grid-row:2;text-align:right;font-size:11px;color:var(--ink-3)}
+.row.past{opacity:.36}
+.row.past::before{background:var(--ink-3)}
+.row.is-today{
+  background:var(--tint);border-bottom-color:transparent;
+  box-shadow:inset 0 0 0 1px var(--tint-2);
+}
+.row.is-today .dt,.row.is-today .wd{color:var(--accent-deep)}
+.pill{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;vertical-align:1px}
+.pill.now{background:var(--accent);color:var(--on-accent);box-shadow:0 3px 10px -4px var(--halo)}
+.pill.next{border:1px solid var(--accent);color:var(--accent)}
+
+.warn{
+  margin:14px 0 0;flex:none;padding:10px 13px;border-radius:14px;font-size:12.5px;
+  color:var(--alert);background:var(--alert-bg);border:1px solid var(--alert-bg);
+}
+
+.foot{
+  flex:none;display:flex;align-items:baseline;justify-content:space-between;
+  gap:4px 20px;flex-wrap:wrap;
+  padding:2px 10px;font-size:11.5px;font-weight:400;color:var(--ink-3);
+}
+.foot b{font-weight:600;color:var(--ink-2)}
+.foot .credit{margin-left:auto;font-size:9.5px;letter-spacing:.04em;opacity:.7}
+
+/* Short screens (1366x768 and similar) */
+@media (min-width:1200px) and (max-height:860px){
+  .app{padding:11px 15px 8px;gap:10px}
+  .panel{padding:14px 16px 15px;border-radius:22px}
+  .panel-head{margin-bottom:10px}
+  .ga .n{font-size:clamp(30px,2.6vw,42px)}
+  .prog{margin-top:11px}
+  .pair{margin-top:13px}
+  .pair div{padding:9px 12px}
+  .sec-title{margin:13px 0 3px}
+  .row{padding:7px 10px 7px 15px}
+  .row::before{top:7px;bottom:7px}
+  .under{margin-top:9px;gap:6px}
+  .picked{margin-bottom:9px;padding:6px 12px}
+}
+
+@media (max-width:1199px){
+  .grid{grid-template-columns:1fr}
+  .body{grid-template-columns:1fr;gap:15px}
+  .cal-scroll{height:340px;flex:none}
+  .col-res{overflow:visible}
+  .col-res > *{max-width:none}
+  .empty-state{flex:none;padding:18px}
+}
+/* Past rows dim to 36% on light glass; on dark glass that reads as nearly
+   gone, so dark mode dims less. */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .row.past{opacity:.56}
+}
+:root[data-theme="dark"] .row.past{opacity:.56}
+@media (max-width:640px){
+  .app{padding:14px 16px 10px;gap:12px}
+  .panel{padding:16px;border-radius:22px}
+  .bar{padding:0 2px}
+  .foot{padding:2px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="bar">
+    <div class="brand">
+      <span class="org">IWK Health · Diagnostic Imaging</span>
+      <h1>EDD/LMP Calculator</h1>
+    </div>
+    <p class="today" id="todayLine"></p>
+  </header>
+
+  <main class="grid" id="grid"></main>
+
+  <footer class="foot">
+    <span><b>40 weeks 0 days = EDD.</b> Gestational age runs from the LMP.</span>
+    <span class="credit">Built by Arthik using Claude for IWK U/S Booking Team</span>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var MON      = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var MON_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var WD_FULL  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var WD_MIN   = ['S','M','T','W','T','F','S'];
+
+  var TERM_DAYS = 280;                       // LMP to EDD
+
+  // The week points the booking desk works from, each with the scan that falls there.
+  // Scan labels are general convention — confirm against current IWK protocol and edit here only.
+  var MILESTONES = [
+    { w:12, note:'Nuchal translucency' },
+    { w:20, note:'Anatomy' },
+    { w:28, note:'Growth' },
+    { w:32, note:'Growth' },
+    { w:36, note:'Growth' },
+    { w:40, note:'Due date' }
+  ];
+
+  function pad(n){ return n < 10 ? '0' + n : '' + n; }
+  function today(){ var d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function addDays(base, n){
+    var x = new Date(base.getFullYear(), base.getMonth(), base.getDate());
+    x.setDate(x.getDate() + n);
+    return x;
+  }
+  function dayDiff(a, b){
+    var A = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+    var B = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+    return Math.round((B - A) / 86400000);
+  }
+  function key(d){ return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()); }
+  function fromKey(s){ var p = s.split('-'); return new Date(+p[0], +p[1]-1, +p[2]); }
+  function fmt(d){ return d.getFullYear() + '-' + MON[d.getMonth()] + '-' + pad(d.getDate()); }
+  function weekday(d){ return WD_FULL[d.getDay()]; }
+  function plural(n, w){ return n + ' ' + w + (n === 1 ? '' : 's'); }
+  function gaWords(w, d){ return plural(w,'week') + ' ' + plural(d,'day'); }
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c];
+  }); }
+
+  function trimester(ageDays){
+    if (ageDays < 98)  return { name:'First trimester',  cls:'t1' };
+    if (ageDays < 196) return { name:'Second trimester', cls:'t2' };
+    return { name:'Third trimester', cls:'t3' };
+  }
+  // A week point belongs to the trimester it opens in: 12 first, 20 second, 28+ third.
+  function weekTri(w){ return w < 14 ? 't1' : (w < 28 ? 't2' : 't3'); }
+
+  document.getElementById('todayLine').textContent = weekday(today()) + ', ' + fmt(today());
+
+  /* ---------------- calendar ---------------- */
+  function buildCalendar(host, monthsBack, monthsFwd, onPick){
+    var head = document.createElement('div');
+    head.className = 'cal-top';
+    for (var w = 0; w < 7; w++){
+      var s = document.createElement('span');
+      s.textContent = WD_MIN[w];
+      s.setAttribute('aria-hidden','true');
+      head.appendChild(s);
+    }
+
+    var scroll = document.createElement('div');
+    scroll.className = 'cal-scroll';
+    scroll.setAttribute('role','group');
+
+    var t = today(), anchorEl = null;
+    var start = new Date(t.getFullYear(), t.getMonth() - monthsBack, 1);
+    var total = monthsBack + monthsFwd + 1;
+    var frag = document.createDocumentFragment();
+
+    for (var i = 0; i < total; i++){
+      var m = new Date(start.getFullYear(), start.getMonth() + i, 1);
+      var block = document.createElement('div');
+      block.className = 'cal-month';
+
+      var lab = document.createElement('div');
+      lab.className = 'cal-label';
+      lab.textContent = MON_FULL[m.getMonth()] + ' ' + m.getFullYear();
+      block.appendChild(lab);
+
+      var grid = document.createElement('div');
+      grid.className = 'cal-grid';
+      for (var b = 0; b < m.getDay(); b++){
+        var sp = document.createElement('span');
+        sp.className = 'cal-blank';
+        grid.appendChild(sp);
+      }
+      var dim = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate();
+      for (var day = 1; day <= dim; day++){
+        var dt = new Date(m.getFullYear(), m.getMonth(), day);
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'cal-day';
+        btn.textContent = day;
+        btn.dataset.k = key(dt);
+        btn.setAttribute('aria-label', weekday(dt) + ' ' + fmt(dt));
+        btn.setAttribute('aria-pressed','false');
+        if (dayDiff(dt, t) === 0) btn.classList.add('is-today');
+        grid.appendChild(btn);
+      }
+      block.appendChild(grid);
+      frag.appendChild(block);
+      if (m.getFullYear() === t.getFullYear() && m.getMonth() === t.getMonth()) anchorEl = block;
+    }
+    scroll.appendChild(frag);
+
+    // The weekday row lives inside the scroller so it shares the scrollbar
+    // offset with the day columns; outside it, the two drift apart.
+    scroll.insertBefore(head, scroll.firstChild);
+    host.appendChild(scroll);
+
+    scroll.addEventListener('click', function(e){
+      var btn = e.target.closest ? e.target.closest('.cal-day') : null;
+      if (!btn) return;
+      onPick(fromKey(btn.dataset.k));
+    });
+
+    // Offset by the sticky weekday row, which sits in flow above the months.
+    function headOffset(){ return head.offsetHeight || 28; }
+
+    function jumpToToday(smooth){
+      if (!anchorEl) return;
+      if (smooth) scroll.classList.add('smooth'); else scroll.classList.remove('smooth');
+      scroll.scrollTop = Math.max(0, anchorEl.offsetTop - headOffset());
+      if (!smooth) requestAnimationFrame(function(){ scroll.classList.add('smooth'); });
+    }
+    function mark(d){
+      var prev = scroll.querySelectorAll('.is-sel');
+      for (var i = 0; i < prev.length; i++){
+        prev[i].classList.remove('is-sel');
+        prev[i].setAttribute('aria-pressed','false');
+      }
+      if (!d) return;
+      var el = scroll.querySelector('[data-k="' + key(d) + '"]');
+      if (el){ el.classList.add('is-sel'); el.setAttribute('aria-pressed','true'); }
+    }
+    function marks(dates, ring){
+      var old = scroll.querySelectorAll('.has-dot, .is-derived');
+      for (var i = 0; i < old.length; i++){
+        old[i].classList.remove('has-dot','is-derived','t1','t2','t3');
+        old[i].removeAttribute('title');
+      }
+      (dates || []).forEach(function(m){
+        var el = scroll.querySelector('[data-k="' + key(m.date) + '"]');
+        if (!el) return;
+        el.classList.add('has-dot', weekTri(m.w));
+        el.setAttribute('title', plural(m.w,'week') + ' 0 days — ' + m.note);
+      });
+      if (ring){
+        var r = scroll.querySelector('[data-k="' + key(ring.date) + '"]');
+        if (r){ r.classList.add('is-derived'); r.setAttribute('title', ring.label); }
+      }
+    }
+
+    return { mark: mark, marks: marks, jumpToToday: jumpToToday };
+  }
+
+  /* ---------------- calculation ---------------- */
+  function compute(mode, picked, cycle){
+    var lmpEntered = null, edd, anchor;
+
+    if (mode === 'lmp'){
+      lmpEntered = picked;
+      edd = addDays(picked, TERM_DAYS + (cycle - 28));
+    } else {
+      edd = picked;
+    }
+    anchor = addDays(edd, -TERM_DAYS);      // dating anchor: 40 weeks 0 days is always the EDD
+
+    var t = today();
+    var ageDays = dayDiff(anchor, t);
+    var toGo = dayDiff(t, edd);
+
+    var milestones = MILESTONES.map(function(w){
+      var d = addDays(anchor, w.w * 7);
+      var rel = dayDiff(t, d);
+      return { w:w.w, note:w.note, date:d, isEdd:w.w === 40, isToday:rel === 0, isPast:rel < 0 };
+    });
+
+    var nextIdx = -1;
+    for (var i = 0; i < milestones.length; i++){
+      if (!milestones[i].isPast && !milestones[i].isToday){ nextIdx = i; break; }
+    }
+    if (nextIdx > -1) milestones[nextIdx].isNext = true;
+
+    return {
+      lmpEntered: lmpEntered,
+      anchor: anchor,
+      edd: edd,
+      ageDays: ageDays,
+      weeks: Math.floor(ageDays / 7),
+      days: ((ageDays % 7) + 7) % 7,
+      toGo: toGo,
+      milestones: milestones,
+      shifted: mode === 'lmp' ? dayDiff(lmpEntered, anchor) : 0
+    };
+  }
+
+  /* ---------------- rendering ---------------- */
+  function renderResults(r, mode){
+    var valid = r.ageDays >= 0 && r.ageDays <= 315;
+    var html = '';
+
+    html += '<div class="ga">';
+    if (r.ageDays < 0){
+      html += '<span class="n">&mdash;</span><span class="none">not yet pregnant on this dating</span>';
+    } else {
+      html += '<span class="n">' + r.weeks + '</span><span class="u">' + (r.weeks === 1 ? 'week' : 'weeks') + '</span>';
+      html += '<span class="n">' + r.days + '</span><span class="u">' + (r.days === 1 ? 'day' : 'days') + '</span>';
+    }
+    html += '</div>';
+
+    var tri = trimester(r.ageDays);
+    html += '<p class="ga-label">Gestational age today' +
+            (r.ageDays < 0 ? '' : '. <b class="' + tri.cls + '">' + tri.name + '</b>.') + '</p>';
+
+    if (r.ageDays >= 0){
+      var pct = Math.max(0, Math.min(100, r.ageDays / 280 * 100));
+      html += '<div class="prog"><div class="prog-track">';
+      html += '<div class="prog-fill" style="width:' + pct.toFixed(2) + '%"></div>';
+      MILESTONES.forEach(function(m){
+        html += '<span class="prog-tick" style="left:' + (m.w / 40 * 100).toFixed(2) + '%"></span>';
+      });
+      html += '</div>';
+      // Marker lives outside the track: the track clips its overflow.
+      html += '<span class="prog-now" style="left:' + pct.toFixed(2) + '%"></span>';
+      html += '<div class="prog-scale"><span>0 weeks</span><span>40 weeks</span></div></div>';
+    }
+
+    var leftLabel = mode === 'lmp'
+      ? 'Estimated Due Date <span class="abbr">EDD</span>'
+      : 'Last Menstrual Period <span class="abbr">LMP</span>';
+    var leftDate = mode === 'lmp' ? r.edd : r.anchor;
+
+    html += '<dl class="pair">';
+    html += '<div class="primary"><dt>' + leftLabel + '</dt><dd>' + fmt(leftDate) +
+            '<span class="wd">' + weekday(leftDate) + '</span></dd></div>';
+    if (r.toGo >= 0){
+      html += '<div><dt>Days to Due Date</dt><dd>' + r.toGo + '<span class="wd">' +
+              (r.toGo === 0 ? 'Due today' : gaWords(Math.floor(r.toGo/7), r.toGo%7)) + '</span></dd></div>';
+    } else {
+      html += '<div><dt>Past Due Date</dt><dd>' + Math.abs(r.toGo) + '<span class="wd">' +
+              plural(Math.abs(r.toGo),'day') + ' ago</span></dd></div>';
+    }
+    html += '</dl>';
+
+    html += '<h3 class="sec-title">Dates by week</h3><div class="rows">';
+    r.milestones.forEach(function(m){
+      var cls = 'row ' + weekTri(m.w);
+      if (m.isToday) cls += ' is-today';
+      else if (m.isPast) cls += ' past';
+      var pill = m.isToday ? '<span class="pill now">Today</span>'
+               : (m.isNext ? '<span class="pill next">Next</span>' : '');
+      html += '<div class="' + cls + '">';
+      html += '<span class="wk">' + gaWords(m.w, 0) + (pill ? ' ' + pill : '') + '</span>';
+      html += '<span class="note">' + esc(m.note) + '</span>';
+      html += '<span class="dt">' + fmt(m.date) + '</span>';
+      html += '<span class="wd">' + weekday(m.date) + '</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    if (!valid){
+      html += '<p class="warn">' + (r.ageDays < 0
+        ? 'This dating puts conception in the future. Check the date before booking.'
+        : 'This dating is past 45 weeks. Check the date before booking.') + '</p>';
+    }
+
+    return html;
+  }
+
+  /* ---------------- panel ---------------- */
+  function makePanel(cfg){
+    var el = document.createElement('section');
+    el.className = 'panel';
+    el.setAttribute('data-badge', cfg.badge);
+    el.setAttribute('data-mode', cfg.mode);   // drives the panel's accent identity
+
+    var cycleBlock = cfg.mode === 'lmp'
+      ? '<div class="cycle"><label for="cyc-lmp">Cycle length</label>' +
+        '<input id="cyc-lmp" type="number" inputmode="numeric" min="20" max="45" step="1" value="28">' +
+        '<span class="unit">days</span></div>' +
+        '<p class="shift" data-shift></p>'
+      : '<p class="no-cycle">An established EDD already accounts for cycle length.</p>';
+
+    el.innerHTML =
+      '<div class="panel-head">' +
+        '<h2>' + cfg.title + '<span class="badge ' + cfg.badge + '">' + cfg.abbr + '</span></h2>' +
+        '<span class="hint">' + cfg.hint + '</span>' +
+      '</div>' +
+      '<div class="body">' +
+        '<div class="col-cal">' +
+          '<div class="cal" data-cal>' +
+            '<div class="cal-bar">' +
+              '<button type="button" class="cal-btn" data-act="reset" data-clear disabled>Clear</button>' +
+              '<button type="button" class="cal-btn" data-act="today">Today</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="under">' +
+            cycleBlock +
+            '<p class="cal-legend" data-legend hidden><i></i> week dates <u></u> ' + cfg.ringLabel + '</p>' +
+          '</div>' +
+        '</div>' +
+        '<div class="col-res">' +
+          '<p class="picked empty" data-picked>' + cfg.empty + '</p>' +
+          '<div class="empty-state" data-empty>' +
+            '<strong>' + cfg.emptyTitle + '</strong>' +
+            '<span>' + cfg.emptyBody + '</span>' +
+          '</div>' +
+          '<div class="results" data-results hidden></div>' +
+        '</div>' +
+      '</div>';
+
+    var picked = null;
+    var cycle = 28;
+    var pickedEl = el.querySelector('[data-picked]');
+    var resEl    = el.querySelector('[data-results]');
+    var emptyEl  = el.querySelector('[data-empty]');
+    var legendEl = el.querySelector('[data-legend]');
+    var clearEl  = el.querySelector('[data-clear]');
+    var shiftEl  = el.querySelector('[data-shift]');
+    var cycEl    = el.querySelector('#cyc-lmp');
+
+    var cal = buildCalendar(el.querySelector('[data-cal]'), cfg.back, cfg.fwd, function(d){
+      // Clicking the selected date again clears it and returns the calendar to today.
+      if (picked && dayDiff(picked, d) === 0){ clear(); return; }
+      picked = d;
+      cal.mark(d);
+      update();
+    });
+
+    function clear(){
+      picked = null;
+      cal.mark(null);
+      update();
+      cal.jumpToToday(true);
+    }
+
+    function update(){
+      if (!picked){
+        pickedEl.textContent = cfg.empty;
+        pickedEl.classList.add('empty');
+        resEl.hidden = true;
+        resEl.innerHTML = '';
+        emptyEl.hidden = false;
+        legendEl.hidden = true;
+        clearEl.disabled = true;
+        cal.marks([], null);
+        if (shiftEl) shiftEl.textContent = '';
+        return;
+      }
+      pickedEl.textContent = cfg.label + ' ' + fmt(picked) + ', ' + weekday(picked);
+      pickedEl.classList.remove('empty');
+      emptyEl.hidden = true;
+
+      var r = compute(cfg.mode, picked, cycle);
+      if (shiftEl){
+        shiftEl.textContent = r.shifted === 0
+          ? ''
+          : 'A ' + cycle + '-day cycle moves dating ' + plural(Math.abs(r.shifted), 'day') +
+            (r.shifted > 0 ? ' later' : ' earlier') + '.';
+      }
+      cal.marks(r.milestones, {
+        date: cfg.mode === 'lmp' ? r.edd : r.anchor,
+        label: cfg.mode === 'lmp' ? 'Estimated Due Date (EDD)' : 'Last Menstrual Period (LMP)'
+      });
+      legendEl.hidden = false;
+      clearEl.disabled = false;
+      resEl.innerHTML = renderResults(r, cfg.mode);
+      resEl.hidden = false;
+    }
+
+    el.addEventListener('click', function(e){
+      var b = e.target.closest ? e.target.closest('[data-act]') : null;
+      if (!b) return;
+      var act = b.dataset.act;
+      if (act === 'today') cal.jumpToToday(true);
+      if (act === 'reset') clear();
+    });
+
+    if (cycEl){
+      cycEl.addEventListener('input', function(){
+        var v = parseInt(cycEl.value, 10);
+        cycle = (isFinite(v) && v >= 20 && v <= 45) ? v : 28;
+        update();
+      });
+    }
+
+    el.initScroll = function(){ cal.jumpToToday(false); };
+    el.reScroll   = function(){ if (!picked) cal.jumpToToday(false); };
+    return el;
+  }
+
+  function mount(grid, cfg){
+    var p = makePanel(cfg);
+    grid.appendChild(p);
+    p.initScroll();            // offsetTop is only real once the panel is in the document
+    return p;
+  }
+
+  var grid = document.getElementById('grid');
+  var panels = [
+    mount(grid, {
+      mode:'lmp',
+      title:'Last Menstrual Period',
+      abbr:'LMP',
+      badge:'solid',
+      hint:'first day of the last period',
+      label:'LMP',
+      empty:'Choose the first day of the last period',
+      emptyTitle:'Pick an LMP date',
+      emptyBody:'Gestational age, the due date and every scan week appear here.',
+      ringLabel:'EDD',
+      back:16, fwd:11
+    }),
+    mount(grid, {
+      mode:'edd',
+      title:'Estimated Due Date',
+      abbr:'EDD',
+      badge:'outline',
+      hint:'as established on the requisition',
+      label:'EDD',
+      empty:'Choose the established due date',
+      emptyTitle:'Pick an EDD',
+      emptyBody:'Gestational age, the LMP and every scan week appear here.',
+      ringLabel:'LMP',
+      back:11, fwd:12
+    })
+  ];
+
+  // The calendar height is flex-driven, so a resize changes how much is in view.
+  var t0;
+  window.addEventListener('resize', function(){
+    clearTimeout(t0);
+    t0 = setTimeout(function(){ panels.forEach(function(p){ p.reScroll(); }); }, 180);
+  });
+})();
+</script>
+</body>
+</html>
+
+
+</body></html>
