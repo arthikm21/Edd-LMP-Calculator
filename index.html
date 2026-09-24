@@ -273,13 +273,16 @@ button{font:inherit;color:inherit}
 .cal-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 .cal-scroll{
-  flex:1;min-height:120px;overflow-y:auto;overscroll-behavior:contain;position:relative;
+  flex:1;min-height:120px;overflow-y:scroll;overscroll-behavior:contain;position:relative;
   padding:0 0 12px;-webkit-overflow-scrolling:touch;
-  scrollbar-width:thin;scrollbar-color:var(--tint-2) transparent;
+  scrollbar-width:thin;scrollbar-color:var(--tint-2) var(--glass-lo);
+  scrollbar-gutter:stable;
 }
 .cal-scroll.smooth{scroll-behavior:smooth}
-.cal-scroll::-webkit-scrollbar{width:7px}
-.cal-scroll::-webkit-scrollbar-thumb{background:var(--tint-2);border-radius:7px;border:2px solid transparent;background-clip:padding-box}
+.cal-scroll::-webkit-scrollbar{width:8px}
+.cal-scroll::-webkit-scrollbar-track{background:var(--glass-lo);border-radius:8px}
+.cal-scroll::-webkit-scrollbar-thumb{background:var(--tint-2);border-radius:8px;border:2px solid transparent;background-clip:padding-box}
+.cal-scroll::-webkit-scrollbar-thumb:hover{background:var(--accent)}
 
 .cal-top{
   display:grid;grid-template-columns:repeat(7,1fr);
@@ -917,6 +920,9 @@ button{font:inherit;color:inherit}
     var p = makePanel(cfg);
     grid.appendChild(p);
     p.initScroll();            // offsetTop is only real once the panel is in the document
+    // A second pass after the browser finishes its first real layout/paint
+    // catches any height that only settles once the panel is fully on-screen.
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ p.reScroll(); }); });
     return p;
   }
 
@@ -933,7 +939,7 @@ button{font:inherit;color:inherit}
       emptyTitle:'Pick an LMP date',
       emptyBody:'Gestational age, the due date and every scan week appear here.',
       ringLabel:'EDD',
-      back:16, fwd:11
+      back:16, fwd:24
     }),
     mount(grid, {
       mode:'edd',
@@ -946,7 +952,7 @@ button{font:inherit;color:inherit}
       emptyTitle:'Pick an EDD',
       emptyBody:'Gestational age, the LMP and every scan week appear here.',
       ringLabel:'LMP',
-      back:11, fwd:12
+      back:11, fwd:24
     })
   ];
 
@@ -955,6 +961,9 @@ button{font:inherit;color:inherit}
   window.addEventListener('resize', function(){
     clearTimeout(t0);
     t0 = setTimeout(function(){ panels.forEach(function(p){ p.reScroll(); }); }, 180);
+  });
+  window.addEventListener('load', function(){
+    panels.forEach(function(p){ p.reScroll(); });
   });
 })();
 </script>
