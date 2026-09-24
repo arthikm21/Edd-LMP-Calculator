@@ -9,7 +9,7 @@
 <style>
 /* ============================================================
    Liquid Glass — IWK Diagnostic Imaging EDD/LMP Calculator
-   Two identities: LMP = lavender, EDD = jade. Everything inside
+   Two identities: LMP = jade, EDD = lavender. Everything inside
    a panel (calendar dots, trimester rails, progress, pills)
    inherits that panel's accent, so the two layouts never blur
    together at a glance.
@@ -52,15 +52,6 @@
 
 /* ---------- per-panel identity ---------- */
 .panel[data-mode="lmp"]{
-  --accent:#6d4bf0;
-  --accent-deep:#36189a;
-  --on-accent:#ffffff;
-  --tint:rgba(109,75,240,.10);
-  --tint-2:rgba(109,75,240,.20);
-  --halo:rgba(124,92,255,.34);
-  --t1:#9b82ff; --t2:#6d4bf0; --t3:#3f27ac;
-}
-.panel[data-mode="edd"]{
   --accent:#0d8b96;
   --accent-deep:#064c55;
   --on-accent:#ffffff;
@@ -69,6 +60,15 @@
   --halo:rgba(20,176,188,.32);
   --t1:#5cc6ce; --t2:#0d8b96; --t3:#0a5a64;
 }
+.panel[data-mode="edd"]{
+  --accent:#6d4bf0;
+  --accent-deep:#36189a;
+  --on-accent:#ffffff;
+  --tint:rgba(109,75,240,.10);
+  --tint-2:rgba(109,75,240,.20);
+  --halo:rgba(124,92,255,.34);
+  --t1:#9b82ff; --t2:#6d4bf0; --t3:#3f27ac;
+}
 
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
@@ -76,19 +76,19 @@
     --ink-2:#a9a2b8;
     --ink-3:#8a8399;
 
-    --glass:rgba(38,33,50,.52);
-    --glass-hi:rgba(58,51,74,.62);
-    --glass-lo:rgba(28,24,38,.44);
-    --sticky:rgba(24,21,32,.95);
-    --stroke:rgba(255,255,255,.12);
-    --edge:rgba(255,255,255,.10);
-    --hairline:rgba(255,255,255,.07);
-    --field:rgba(255,255,255,.07);
+    --glass:rgba(16,15,20,.72);
+    --glass-hi:rgba(26,24,32,.82);
+    --glass-lo:rgba(9,8,12,.60);
+    --sticky:rgba(5,5,7,.97);
+    --stroke:rgba(255,255,255,.09);
+    --edge:rgba(255,255,255,.08);
+    --hairline:rgba(255,255,255,.05);
+    --field:rgba(255,255,255,.05);
 
-    --shadow:0 1px 1px rgba(0,0,0,.35),
-             0 16px 40px -16px rgba(0,0,0,.65),
-             0 60px 110px -60px rgba(0,0,0,.8);
-    --shadow-sm:0 1px 2px rgba(0,0,0,.4), 0 8px 20px -12px rgba(0,0,0,.6);
+    --shadow:0 1px 1px rgba(0,0,0,.45),
+             0 16px 40px -16px rgba(0,0,0,.75),
+             0 60px 110px -60px rgba(0,0,0,.88);
+    --shadow-sm:0 1px 2px rgba(0,0,0,.5), 0 8px 20px -12px rgba(0,0,0,.7);
 
     --alert:#ff7b70;
     --alert-bg:rgba(255,123,112,.12);
@@ -97,37 +97,37 @@
     --accent-deep:#e4dbff;
   }
   :root:not([data-theme="light"]) .panel[data-mode="lmp"]{
-    --accent:#b7a2ff; --accent-deep:#e7dfff; --on-accent:#1a1030;
-    --tint:rgba(183,162,255,.14); --tint-2:rgba(183,162,255,.26);
-    --halo:rgba(150,118,255,.38);
-    --t1:#d2c4ff; --t2:#b7a2ff; --t3:#8f77f0;
-  }
-  :root:not([data-theme="light"]) .panel[data-mode="edd"]{
     --accent:#5fd4de; --accent-deep:#d3f6f9; --on-accent:#04222a;
     --tint:rgba(95,212,222,.13); --tint-2:rgba(95,212,222,.24);
     --halo:rgba(40,190,205,.34);
     --t1:#a9ecf1; --t2:#5fd4de; --t3:#2ba7b4;
   }
+  :root:not([data-theme="light"]) .panel[data-mode="edd"]{
+    --accent:#b7a2ff; --accent-deep:#e7dfff; --on-accent:#1a1030;
+    --tint:rgba(183,162,255,.14); --tint-2:rgba(183,162,255,.26);
+    --halo:rgba(150,118,255,.38);
+    --t1:#d2c4ff; --t2:#b7a2ff; --t3:#8f77f0;
+  }
 }
 :root[data-theme="dark"]{
   --ink:#f4f1fa; --ink-2:#a9a2b8; --ink-3:#8a8399;
-  --glass:rgba(38,33,50,.52); --glass-hi:rgba(58,51,74,.62); --glass-lo:rgba(28,24,38,.44);
-  --sticky:rgba(24,21,32,.95); --stroke:rgba(255,255,255,.12);
-  --edge:rgba(255,255,255,.10); --hairline:rgba(255,255,255,.07); --field:rgba(255,255,255,.07);
-  --shadow:0 1px 1px rgba(0,0,0,.35), 0 16px 40px -16px rgba(0,0,0,.65), 0 60px 110px -60px rgba(0,0,0,.8);
-  --shadow-sm:0 1px 2px rgba(0,0,0,.4), 0 8px 20px -12px rgba(0,0,0,.6);
+  --glass:rgba(16,15,20,.72); --glass-hi:rgba(26,24,32,.82); --glass-lo:rgba(9,8,12,.60);
+  --sticky:rgba(5,5,7,.97); --stroke:rgba(255,255,255,.09);
+  --edge:rgba(255,255,255,.08); --hairline:rgba(255,255,255,.05); --field:rgba(255,255,255,.05);
+  --shadow:0 1px 1px rgba(0,0,0,.45), 0 16px 40px -16px rgba(0,0,0,.75), 0 60px 110px -60px rgba(0,0,0,.88);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.5), 0 8px 20px -12px rgba(0,0,0,.7);
   --alert:#ff7b70; --alert-bg:rgba(255,123,112,.12);
   --accent:#b7a2ff; --accent-deep:#e4dbff;
 }
 :root[data-theme="dark"] .panel[data-mode="lmp"]{
-  --accent:#b7a2ff; --accent-deep:#e7dfff; --on-accent:#1a1030;
-  --tint:rgba(183,162,255,.14); --tint-2:rgba(183,162,255,.26); --halo:rgba(150,118,255,.38);
-  --t1:#d2c4ff; --t2:#b7a2ff; --t3:#8f77f0;
-}
-:root[data-theme="dark"] .panel[data-mode="edd"]{
   --accent:#5fd4de; --accent-deep:#d3f6f9; --on-accent:#04222a;
   --tint:rgba(95,212,222,.13); --tint-2:rgba(95,212,222,.24); --halo:rgba(40,190,205,.34);
   --t1:#a9ecf1; --t2:#5fd4de; --t3:#2ba7b4;
+}
+:root[data-theme="dark"] .panel[data-mode="edd"]{
+  --accent:#b7a2ff; --accent-deep:#e7dfff; --on-accent:#1a1030;
+  --tint:rgba(183,162,255,.14); --tint-2:rgba(183,162,255,.26); --halo:rgba(150,118,255,.38);
+  --t1:#d2c4ff; --t2:#b7a2ff; --t3:#8f77f0;
 }
 
 *{box-sizing:border-box}
@@ -141,32 +141,32 @@ body{
   font-size:16px;line-height:1.5;
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
 }
-@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) body{background:#0c0a12} }
-:root[data-theme="dark"] body{background:#0c0a12}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) body{background:#030304} }
+:root[data-theme="dark"] body{background:#030304}
 
 /* ambient light the glass has something to refract — lavender on the
    LMP side, jade on the EDD side, so each panel sits in its own light. */
 body::before{
   content:'';position:fixed;inset:-20% -10%;z-index:-1;pointer-events:none;
   background:
-    radial-gradient(48% 52% at 18% 16%, rgba(124,92,255,.30), transparent 70%),
-    radial-gradient(46% 50% at 82% 20%, rgba(20,176,188,.26), transparent 70%),
+    radial-gradient(48% 52% at 18% 16%, rgba(20,176,188,.30), transparent 70%),
+    radial-gradient(46% 50% at 82% 20%, rgba(124,92,255,.26), transparent 70%),
     radial-gradient(60% 45% at 50% 100%, rgba(160,140,255,.16), transparent 72%);
   filter:blur(6px);
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]) body::before{
     background:
-      radial-gradient(48% 52% at 18% 14%, rgba(122,84,255,.34), transparent 70%),
-      radial-gradient(46% 50% at 84% 18%, rgba(10,150,165,.28), transparent 70%),
-      radial-gradient(60% 45% at 50% 100%, rgba(70,40,160,.24), transparent 72%);
+      radial-gradient(48% 52% at 18% 14%, rgba(10,150,165,.16), transparent 70%),
+      radial-gradient(46% 50% at 84% 18%, rgba(122,84,255,.14), transparent 70%),
+      radial-gradient(60% 45% at 50% 100%, rgba(50,30,110,.12), transparent 72%);
   }
 }
 :root[data-theme="dark"] body::before{
   background:
-    radial-gradient(48% 52% at 18% 14%, rgba(122,84,255,.34), transparent 70%),
-    radial-gradient(46% 50% at 84% 18%, rgba(10,150,165,.28), transparent 70%),
-    radial-gradient(60% 45% at 50% 100%, rgba(70,40,160,.24), transparent 72%);
+    radial-gradient(48% 52% at 18% 14%, rgba(10,150,165,.16), transparent 70%),
+    radial-gradient(46% 50% at 84% 18%, rgba(122,84,255,.14), transparent 70%),
+    radial-gradient(60% 45% at 50% 100%, rgba(50,30,110,.12), transparent 72%);
 }
 
 button{font:inherit;color:inherit}
@@ -858,7 +858,6 @@ button{font:inherit;color:inherit}
       picked = null;
       cal.mark(null);
       update();
-      cal.jumpToToday(true);
     }
 
     function update(){
